@@ -1,0 +1,86 @@
+﻿@page "/deleterole/{id:guid}"
+@inject NavigationManager nav
+@inject IRoleService roleService
+@inject IWebHostEnvironment env
+
+<h2>Confirmar Exclusão ?</h2>
+<p>Deseja realmente excluir este perfil id: <b>@id</b></p>
+<br />
+
+<Alerta Exibir="Exibir">
+    <strong>@Mensagem</strong>
+</Alerta>
+
+<div class="col-md-8">
+    <table class="table">
+        <tr>
+            <td>Name</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Normalizado</td>
+            <td>@role.NormalizedName</td>
+        </tr>
+        <tr>
+            <td>Concorrência</td>
+            <td>@role.ConcurrencyStamp</td>
+        </tr>
+    </table>
+    <div class="form-group">
+        <input type="button" value="Deletar" @onclick="Delete" class="btn btn-primary" />
+        <input type="button" value="Cancelar" @onclick="Cancel" class="btn btn-primary" />
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? Mensagem { get; set; }
+    private bool Exibir = false;
+    [Parameter] public Guid id { get; set; }
+    Role role = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            role = await roleService.GetRole(id);
+        }
+        catch (Exception ex)
+        {
+            Exibir = true;
+            if (env.IsDevelopment())
+            {
+                Mensagem = "Erro.. " + ex.StackTrace!.ToString();
+            }
+            else
+            {
+                Mensagem = "Não foi possível acessar os dados...";
+            }
+        }
+    }
+
+    void Cancel()
+    {
+        nav.NavigateTo("roles");
+    }
+
+    protected async Task Delete()
+    {
+        try
+        {
+            await roleService.DeleteRole(id);
+            nav.NavigateTo("roles");
+        }
+        catch (Exception ex)
+        {
+            Exibir = true;
+            if (env.IsDevelopment())
+            {
+                Mensagem = "Erro.. " + ex.StackTrace.ToString();
+            }
+            else
+            {
+                Mensagem = "Não foi possível acessar os dados...";
+            }
+        }
+    }
+}

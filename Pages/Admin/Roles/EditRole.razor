@@ -1,0 +1,96 @@
+﻿@page "/editrole/{id:guid}"
+@inject NavigationManager navigation
+@inject IRoleService roleService
+@inject IWebHostEnvironment env
+
+<h2>Editar Perfil</h2>
+
+<Alerta Exibir="Exibir">
+    <h3>@Mensagem</h3>
+</Alerta>
+
+<form>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="form-group">
+                <label class="contro-label">Nome</label>
+                <input class="form-control" @bind="@role.Name" />
+            </div>
+            <div class="form-group">
+                <label class="contro-label">Normalizado</label>
+                <input class="form-control" @bind="@role.NormalizedName" disabled />
+            </div>
+            <div class="form-group">
+                <label class="contro-label">ConcurrencyStamp</label>
+                <input class="form-control" @bind="@role.ConcurrencyStamp" disabled />
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group">
+            <input type="button" class="btn btn-primary" @onclick="UpdateRole" value="Atualizar" />
+            <input type="button" class="btn" @onclick="Cancel" value="Cancelar" />
+        </div>
+    </div>
+</form>
+
+@code {
+    [Parameter] public string? Mensagem { get; set; }
+    [Parameter] public Guid id { get; set; }
+    Role role = new();
+    bool Exibir = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            role = await roleService.GetRole(id);
+        }
+        catch (Exception ex)
+        {
+            Exibir = true;
+            if (env.IsDevelopment())
+            {
+                Mensagem = "Erro.. " + ex.StackTrace.ToString();
+            }
+            else
+            {
+                Mensagem = "Não foi possível acessar os dados...";
+            }
+        }
+    }
+
+    void Cancel()
+    {
+        navigation.NavigateTo("roles");
+    }
+
+    protected async Task UpdateRole()
+    {
+        try
+        {
+            bool result = await roleService.EditRole(id, role);
+            if (!result)
+            {
+                Exibir = true;
+                Mensagem = "Já existe Role cadastrada com este nome";
+            }
+            else
+            {
+                navigation.NavigateTo("roles");
+            }
+        }
+        catch (Exception ex)
+        {
+            Exibir = true;
+            if (env.IsDevelopment())
+            {
+                Mensagem = "Erro.. " + ex.StackTrace.ToString();
+            }
+            else
+            {
+                Mensagem = "Não foi possível acessar os dados...";
+            }
+        }
+    }
+}

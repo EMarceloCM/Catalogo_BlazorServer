@@ -1,0 +1,69 @@
+﻿@page "/users"
+@* @attribute [Authorize]*@
+@inject IUserService userService
+@inject IWebHostEnvironment env
+@attribute [Authorize]
+
+<h2>Usuários</h2>
+
+<Alerta Exibir="Exibir">
+    <h3>@Mensagem</h3>
+</Alerta>
+
+@if(users == null)
+{
+    <img src="~/welcome.gif" />
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nome</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td>@user.UserName</td>
+                    <td>@user.Email</td>
+                    <td>
+                        <a href="/addroleuser/@user.Id">Novo Perfil</a>
+                        <a href="/deleteuser/@user.Id">Deletar</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    List<User>? users;
+    bool Exibir = false;
+    [Parameter] public string? Mensagem { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            users = await userService.GetUsers();
+        }
+        catch (Exception ex)
+        {
+            Exibir = true;
+            if (env.IsDevelopment())
+            {
+                Mensagem = "Erro ao acessar os dados...\n" + ex.StackTrace!.ToString();
+            }
+            else
+            {
+                Mensagem = "Erro ao acessar os dados...\n" + ex.InnerException!.ToString();
+            }
+        }
+    }
+
+}

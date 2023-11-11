@@ -1,0 +1,67 @@
+﻿@page "/deleteuser/{id:guid}"
+@inject IUserService userService
+@inject IWebHostEnvironment env
+@inject NavigationManager navigation
+
+<h2>Confirmar exclusão ?</h2>
+<p>Deseja realmente deletar este usuário com Id: <b>@Id</b> ?</p>
+<br />
+
+<Alerta Exibir="Exibir">
+    <h3>@Mensagem</h3>
+</Alerta>
+
+<div class="col-md-4">
+    <table class="table">
+        <tr>
+            <td>Nome</td>
+            <td>@user.UserName</td>
+        </tr>
+        <tr>
+            <td>Normalizado</td>
+            <td>@user.Email</td>
+        </tr>
+    </table>
+    <div class="form-group">
+        <input type="button" value="Deletar" @onclick="@Delete" class="btn btn-primary" />
+        <input type="button" value="Cancelar" @onclick="@Cancel" class="btn btn-outline-primary" />
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    User user = new();
+    bool Exibir = false;
+    [Parameter] public string? Mensagem { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await userService.GetUser(Id);
+    }
+
+    private void Cancel()
+    {
+        navigation.NavigateTo("users");
+    }
+
+    private async Task Delete()
+    {
+        try
+        {
+            await userService.DeleteUser(Id);
+            navigation.NavigateTo("users");
+        }
+        catch (Exception ex)
+        {
+            Exibir = true;
+            if (env.IsDevelopment())
+            {
+                Mensagem = "Erro ao acessar os dados...\n" + ex.StackTrace!.ToString();
+            }
+            else
+            {
+                Mensagem = "Erro ao acessar os dados...\n" + ex.InnerException!.ToString();
+            }
+        }
+    }
+}

@@ -1,0 +1,73 @@
+﻿@page "/roles"
+@inject IRoleService roleService
+@inject IWebHostEnvironment env
+@attribute [Authorize]
+
+<h2>Roles</h2>
+
+<p>
+    <a href="/addrole">Criar Novo Perfil</a>
+</p>
+<Alerta Exibir="Exibir">
+    <h3>@Mensagem</h3>
+</Alerta>
+
+@if (roles == null)
+{
+    <img src="~/welcome.gif" />
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nome</th>
+                <th>Normalizado</th>
+                <th>TimeStamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var role in roles)
+            {
+                <tr>
+                    <td>@role.Id</td>
+                    <td>@role.Name</td>
+                    <td>@role.NormalizedName</td>
+                    <td>@role.ConcurrencyStamp</td>
+                    <td>
+                        <a href="/editrole/@role.Id">Editar</a>
+                        <a href="/deleterole/@role.Id">Deletar</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter] public string? Mensagem { get; set; }
+    bool Exibir = false;
+    List<Role>? roles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            roles = await roleService.GetRoles();
+        }
+        catch (Exception ex)
+        {
+            Exibir = true;
+
+            if (env.IsDevelopment())
+            {
+                Mensagem = "Erro ao acessar os dados.. " + ex.StackTrace!.ToString();
+            }
+            else
+            {
+                Mensagem = "Não foi possível acessar os dados...";
+            }
+        }
+    }
+}
